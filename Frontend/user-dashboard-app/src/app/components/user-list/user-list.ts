@@ -1,8 +1,9 @@
-import { Component, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../services/user.service';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
 @Component({
   selector: 'app-user-list',
@@ -18,38 +19,67 @@ export class UserList implements OnInit {
 
   // Pagination properties
   currentPage: number = 1;
-  itemsPerPage: number = 6; // Default items per page
+  itemsPerPage: number = 5; // Default items per page
   totalItems: number = 0;
   itemsPerPageOptions: number[] = [5, 10, 20, 50]; // Options for items per page
 
-  constructor(private userService: UserService) {}
+  // Sorting properties
+  currentSort: string = 'firstname';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
+  // Search properties
+  searchText: string = '';
+  private searchSubject = new Subject<string>();
+
+  constructor(
+    private userService: UserService,
+    private cdr: ChangeDetectorRef
+  ) {
+    // Setup search debounce
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.currentPage = 1;
+      this.loadUsers();
+    });
+  }
 
   ngOnInit() {
     this.loadUsers();
   }
 
   loadUsers() {
-    this.userService.getPaginatedUsers(this.currentPage, this.itemsPerPage).subscribe((response: any) => {
-      // Access users from response.dataSource.$values
-      const users = response.dataSource?.$values || [];
+    this.userService.getPaginatedUsers(
+      this.currentPage,
+      this.itemsPerPage,
+      this.currentSort,
+      this.sortDirection,
+      this.searchText
+    ).subscribe({
+      next: (response: any) => {
+        const users = response.dataSource?.$values || [];
 
-      this.users = users.map((user: any) => ({
-        name: user.firstName + ' ' + user.lastName,
-        email: user.email,
-        role: user.roleId, // ตอนนี้มีแค่ roleId ถ้าอยากได้ชื่อ role ต้อง join เพิ่มใน backend
-        date: new Date(user.createdDate).toLocaleDateString('en-US', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric'
-        })
-      }));
+        this.users = users.map((user: any) => ({
+          name: user.firstName + ' ' + user.lastName,
+          email: user.email,
+          role: user.roleId,
+          date: new Date(user.createdDate).toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          })
+        }));
 
-      // Update totalItems using response.totalCount
-      this.totalItems = response.totalCount || 0;
+        this.totalItems = response.totalCount || 0;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+      }
     });
   }
 
-  // Pagination actions
   onPageChange(page: number) {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
@@ -57,9 +87,31 @@ export class UserList implements OnInit {
     }
   }
 
-  onItemsPerPageChange() {
-    this.currentPage = 1; // Reset to first page when items per page changes
+  onItemsPerPageChange(newValue: number) {
+    this.itemsPerPage = newValue;
+    this.currentPage = 1;
     this.loadUsers();
+  }
+
+  onSort(field: string) {
+    if (this.currentSort === field) {
+      // Toggle direction if same field
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      // New field, set to ascending
+      this.currentSort = field;
+      this.sortDirection = 'asc';
+    }
+    this.loadUsers();
+  }
+
+  getSortIcon(field: string): string {
+    if (this.currentSort !== field) return '↑';
+    return this.sortDirection === 'asc' ? '↑' : '↓';
+  }
+
+  onSearch() {
+    this.searchSubject.next(this.searchText);
   }
 
   // Helper properties for template
@@ -68,12 +120,12 @@ export class UserList implements OnInit {
   }
 
   get startIndex(): number {
-    if (this.totalItems === 0) return 0; // Handle case with no items
+    if (this.totalItems === 0) return 0;
     return (this.currentPage - 1) * this.itemsPerPage;
   }
 
   get endIndex(): number {
-    if (this.totalItems === 0) return 0; // Handle case with no items
+    if (this.totalItems === 0) return 0;
     const end = this.startIndex + this.itemsPerPage - 1;
     return Math.min(end, this.totalItems - 1);
   }

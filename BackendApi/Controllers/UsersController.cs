@@ -40,10 +40,25 @@ namespace BackendApi.Controllers
             query = query.OrderBy(u => u.UserId);
 
             if (!string.IsNullOrEmpty(search)) {
-                query = query.Where(u => u.FirstName!.Contains(search) ||
-                                         u.LastName!.Contains(search) ||
-                                         u.Email!.Contains(search) ||
-                                         u.Username!.Contains(search));
+                var searchTerms = search.ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                
+                if (searchTerms.Length == 2) {
+                    var firstName = searchTerms[0];
+                    var lastName = searchTerms[1];
+                    query = query.Where(u => 
+                        (u.FirstName != null && u.FirstName.ToLower().Contains(firstName)) &&
+                        (u.LastName != null && u.LastName.ToLower().Contains(lastName))
+                    );
+                } else if (searchTerms.Length == 1) {
+                    var term = searchTerms[0];
+                    query = query.Where(u =>
+                        (u.FirstName != null && u.FirstName.ToLower().Contains(term)) ||
+                        (u.LastName != null && u.LastName.ToLower().Contains(term)) ||
+                        (u.Email != null && u.Email.ToLower().Contains(term)) ||
+                        (u.Username != null && u.Username.ToLower().Contains(term))
+                    );
+                } else {
+                }
             }
 
             if (!string.IsNullOrEmpty(orderBy)) {

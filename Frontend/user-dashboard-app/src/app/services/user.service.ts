@@ -15,12 +15,27 @@ export class UserService {
   }
 
   // New method for paginated users
-  getPaginatedUsers(page: number, pageSize: number): Observable<any> {
+  getPaginatedUsers(
+    page: number,
+    pageSize: number,
+    orderBy?: string,
+    orderDirection?: string,
+    search?: string
+  ): Observable<any> {
     let params = new HttpParams()
-      .set('page', page.toString())
+      .set('pageNumber', page.toString())
       .set('pageSize', pageSize.toString());
 
-    // Assuming the backend endpoint is api/users/DataTable and expects 'page' and 'pageSize' query parameters
+    if (orderBy) {
+      params = params.set('orderBy', orderBy);
+    }
+    if (orderDirection) {
+      params = params.set('orderDirection', orderDirection);
+    }
+    if (search) {
+      params = params.set('search', search);
+    }
+
     return this.http.get<any>(this.apiPaginatedUrl, { params });
   }
 

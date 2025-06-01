@@ -9,7 +9,6 @@ public class EditUserDto
 
     public List<PermissionDto> Permission { get; set; }
 }
-
 public class PermissionDto
 {
     public string PermissionId { get; set; }
