@@ -264,5 +264,75 @@ namespace BackendApi.Controllers
         {
             return await _context.Roles.ToListAsync();
         }
+
+        [HttpPut("{id}")]
+        public async Task<ActionResult<GetUserByIdResponseDto>> UpdateUser(string id, [FromBody] UpdateUsersRequestDTO request)
+        {
+            var role = await _context.Roles.FirstOrDefaultAsync(r => r.RoleId == request.RoleId);
+
+            if (role == null)
+            {
+                return BadRequest(new GetUserByIdResponseDto
+                {
+                    Status = new Status
+                    {
+                        Code = "400",
+                        Description = "Invalid role name"
+                    },
+                    Data = null
+                });
+            }
+
+            var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (user == null)
+            {
+                return NotFound(new GetUserByIdResponseDto
+                {
+                    Status = new Status
+                    {
+                        Code = "404",
+                        Description = "User not found"
+                    },
+                    Data = null
+                });
+            }
+
+            // Update fields
+            user.FirstName = request.FirstName;
+            user.LastName = request.LastName;
+            user.Email = request.Email;
+            user.Phone = request.Phone;
+            user.Username = request.Username;
+            user.Password = request.Password;
+            user.RoleId = role.RoleId;
+            user.CreatedDate = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            // Return in the same format as GetUserById
+            return Ok(new GetUserByIdResponseDto
+            {
+                Status = new Status
+                {
+                    Code = "200",
+                    Description = "User updated successfully"
+                },
+                Data = new UserData
+                {
+                    UserId = user.UserId,
+                    FirstName = user.FirstName ?? string.Empty,
+                    LastName = user.LastName ?? string.Empty,
+                    Email = user.Email ?? string.Empty,
+                    Phone = user.Phone ?? string.Empty,
+                    Username = user.Username ?? string.Empty,
+                    Role = new RoleData
+                    {
+                        RoleId = user.Role?.RoleId ?? string.Empty,
+                        RoleName = user.Role?.RoleName ?? string.Empty
+                    }
+                }
+            });
+        }
     }
 }

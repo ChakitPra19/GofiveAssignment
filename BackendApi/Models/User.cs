@@ -19,8 +19,14 @@ namespace BackendApi.Models
         [StringLength(255)]
         public string? Email { get; set; }
 
+        [StringLength(20)]
+        public string? Phone { get; set; }
+
         [StringLength(100)]
         public string? Username { get; set; }
+
+        [StringLength(100)]
+        public string? Password { get; set; }
 
         [Required]
         public DateTime CreatedDate { get; set; }
