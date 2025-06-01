@@ -31,5 +31,8 @@ namespace BackendApi.Models
 
         [JsonIgnore]
         public Role Role { get; set; }
+
+        [JsonIgnore]
+        public ICollection<UserPermission> UserPermissions { get; set; } = new List<UserPermission>();
     }
 }

@@ -3,6 +3,17 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { User } from '../models/user.model';
 
+interface DeleteUserResponse {
+  status: {
+    code: string;
+    description: string;
+  };
+  data: {
+    result: boolean;
+    message: string;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class UserService {
   private apiUrl = 'http://localhost:5002/api/users';
@@ -43,11 +54,11 @@ export class UserService {
     return this.http.post<User>(this.apiUrl, user);
   }
 
-  updateUser(id: number, user: User): Observable<User> {
+  updateUser(id: string, user: User): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/${id}`, user);
   }
 
-  deleteUser(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  deleteUser(id: string): Observable<DeleteUserResponse> {
+    return this.http.delete<DeleteUserResponse>(`${this.apiUrl}/${id}`);
   }
 }

@@ -11,11 +11,15 @@ namespace BackendApi.Data
         public DbSet<Role> Roles { get; set; }
         public DbSet<Permission> Permissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<UserPermission> UserPermissions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<RolePermission>()
                 .HasKey(rp => new { rp.RoleId, rp.PermissionId });
+
+            modelBuilder.Entity<UserPermission>()
+                .HasKey(up => new { up.UserId, up.PermissionId });
         }
     }
 }

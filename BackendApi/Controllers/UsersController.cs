@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BackendApi.Data;
 using BackendApi.Models;
+using BackendApi.Dtos;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -104,6 +105,111 @@ namespace BackendApi.Controllers
                 TotalCount = totalCount,
                 Page = pageNumber,
                 PageSize = pageSize
+            };
+
+            return Ok(response);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<DeleteUserResponseDto>> DeleteUser(string id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return Ok(new DeleteUserResponseDto
+                {
+                    Status = new Status
+                    {
+                        Code = "404",
+                        Description = "Not Found"
+                    },
+                    Data = new DeleteUserData
+                    {
+                        Result = false,
+                        Message = "User not found"
+                    }
+                });
+            }
+
+            try
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+
+                return Ok(new DeleteUserResponseDto
+                {
+                    Status = new Status
+                    {
+                        Code = "200",
+                        Description = "Success"
+                    },
+                    Data = new DeleteUserData
+                    {
+                        Result = true,
+                        Message = "User deleted successfully"
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new DeleteUserResponseDto
+                {
+                    Status = new Status
+                    {
+                        Code = "500",
+                        Description = "Internal Server Error"
+                    },
+                    Data = new DeleteUserData
+                    {
+                        Result = false,
+                        Message = "Error deleting user: " + ex.Message
+                    }
+                });
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<GetUserByIdResponseDto>> GetUserById(string id)
+        {
+            var user = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == id);
+
+            if (user == null)
+            {
+                return Ok(new GetUserByIdResponseDto
+                {
+                    Status = new Status
+                    {
+                        Code = "404",
+                        Description = "Not Found"
+                    },
+                    Data = null
+                });
+            }
+
+            var response = new GetUserByIdResponseDto
+            {
+                Status = new Status
+                {
+                    Code = "200",
+                    Description = "Success"
+                },
+                Data = new UserData
+                {
+                    UserId = user.UserId,
+                    FirstName = user.FirstName ?? string.Empty,
+                    LastName = user.LastName ?? string.Empty,
+                    Email = user.Email ?? string.Empty,
+                    Phone = string.Empty,
+                    Username = user.Username ?? string.Empty,
+                    Role = new RoleData
+                    {
+                        RoleId = user.Role?.RoleId ?? string.Empty,
+                        RoleName = user.Role?.RoleName ?? string.Empty
+                    },
+                    Permissions = new List<PermissionData>()
+                }
             };
 
             return Ok(response);

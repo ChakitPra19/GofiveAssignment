@@ -4,3 +4,13 @@ GET {{BackendApi_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+
+@baseUrl = http://localhost:5002
+
+### Get all users
+GET {{baseUrl}}/api/users
+Accept: application/json
+
+### Get user by id
+GET {{baseUrl}}/api/users/1
+Accept: application/json

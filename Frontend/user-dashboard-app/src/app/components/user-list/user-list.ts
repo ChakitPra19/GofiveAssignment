@@ -61,6 +61,7 @@ export class UserList implements OnInit {
         const users = response.dataSource?.$values || [];
 
         this.users = users.map((user: any) => ({
+          userId: user.userId,
           name: user.firstName + ' ' + user.lastName,
           email: user.email,
           role: user.roleId,
@@ -137,6 +138,25 @@ export class UserList implements OnInit {
       const start = this.startIndex + 1;
       const end = this.endIndex + 1;
       return `${start}-${end} of ${this.totalItems}`;
+    }
+  }
+
+  deleteUser(userId: string) {
+    if (confirm('Are you sure you want to delete this user?')) {
+      this.userService.deleteUser(userId).subscribe({
+        next: (response) => {
+          if (response.data.result) {
+            // Reload the users list after successful deletion
+            this.loadUsers();
+          }
+          // Show the response message to user
+          alert(response.data.message);
+        },
+        error: (error) => {
+          console.error('Error deleting user:', error);
+          alert('Error deleting user. Please try again.');
+        }
+      });
     }
   }
 }
