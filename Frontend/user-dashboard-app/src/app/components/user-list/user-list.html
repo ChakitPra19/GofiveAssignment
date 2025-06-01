@@ -2,11 +2,11 @@
   <div class="search-container">
     <input type="text" placeholder="Search" class="search-input" [(ngModel)]="searchText" (ngModelChange)="onSearch()" />
   </div>
-  <button class="add-user-btn" (click)="addUser.emit()">Add user +</button>
-</div>
-<table class="user-table">
-  <thead>
-    <tr>
+    <button class="add-user-btn" (click)="addUser.emit()">Add user +</button>
+  </div>
+  <table class="user-table">
+    <thead>
+      <tr>
       <th>
         Name
         <button class="sort-btn" (click)="onSort('firstname')">
@@ -25,26 +25,26 @@
           {{ getSortIcon('roleid') }}
         </button>
       </th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let user of users">
-      <td>
-        <div class="user-name">{{ user.name }}</div>
-        <div class="user-email">{{ user.email }}</div>
-      </td>
-      <td>{{ user.date }}</td>
-      <td>
-        <span class="role-badge">{{ user.role }}</span>
-      </td>
-      <td>
-        <button class="action-btn">✏️</button>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>
+          <div class="user-name">{{ user.name }}</div>
+          <div class="user-email">{{ user.email }}</div>
+        </td>
+        <td>{{ user.date }}</td>
+        <td>
+          <span class="role-badge">{{ user.role }}</span>
+        </td>
+        <td>
+          <button class="action-btn">✏️</button>
         <button class="action-btn" (click)="deleteUser(user.userId)">🗑️</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 
 <div class="pagination-controls">
   <div class="items-per-page">

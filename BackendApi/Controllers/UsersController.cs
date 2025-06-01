@@ -214,5 +214,55 @@ namespace BackendApi.Controllers
 
             return Ok(response);
         }
+
+        [HttpPost]
+        public async Task<ActionResult<User>> CreateUser(AddUserDto addUserDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Check if username already exists
+            if (await _context.Users.AnyAsync(u => u.Username == addUserDto.Username))
+            {
+                return BadRequest("Username already exists");
+            }
+
+            // Check if email already exists
+            if (await _context.Users.AnyAsync(u => u.Email == addUserDto.Email))
+            {
+                return BadRequest("Email already exists");
+            }
+
+            // Check if role exists
+            var role = await _context.Roles.FindAsync(addUserDto.RoleId);
+            if (role == null)
+            {
+                return BadRequest("Invalid role");
+            }
+
+            var user = new User
+            {
+                UserId = Guid.NewGuid().ToString(),
+                FirstName = addUserDto.FirstName,
+                LastName = addUserDto.LastName,
+                Email = addUserDto.Email,
+                Username = addUserDto.Username,
+                RoleId = addUserDto.RoleId,
+                CreatedDate = DateTime.UtcNow
+            };
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetUserById), new { id = user.UserId }, user);
+        }
+
+        [HttpGet("roles")]
+        public async Task<ActionResult<IEnumerable<Role>>> GetRoles()
+        {
+            return await _context.Roles.ToListAsync();
+        }
     }
 }

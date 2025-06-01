@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 import { User } from '../models/user.model';
+import { environment } from '../../environments/environment';
+import { map, tap } from 'rxjs/operators';
 
 interface DeleteUserResponse {
   status: {
@@ -14,15 +16,61 @@ interface DeleteUserResponse {
   };
 }
 
-@Injectable({ providedIn: 'root' })
-export class UserService {
-  private apiUrl = 'http://localhost:5002/api/users';
-  private apiPaginatedUrl = 'http://localhost:5002/api/users/DataTable'; // New API endpoint for pagination
+export interface Role {
+  roleId: string;
+  roleName: string;
+}
 
-  constructor(private http: HttpClient) {}
+interface RoleResponse {
+  $id: string;
+  code: string;
+  description: string;
+  data: {
+    $id: string;
+    $values: Role[];
+  };
+}
+
+export interface AddUserDto {
+  userId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  username: string;
+  password: string;
+  roleId: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class UserService {
+  private apiUrl = `${environment.apiUrl}/api`;
+  private apiPaginatedUrl = 'http://localhost:5002/api/users/DataTable'; // New API endpoint for pagination
+  private rolesSubject = new BehaviorSubject<Role[]>([]);
+  roles$ = this.rolesSubject.asObservable();
+
+  constructor(private http: HttpClient) {
+    // Load roles when service is initialized
+    this.loadRoles();
+  }
+
+  private loadRoles() {
+    this.http.get<RoleResponse>(`${this.apiUrl}/roles`).pipe(
+      map(response => response.data.$values)
+    ).subscribe({
+      next: (roles) => {
+        this.rolesSubject.next(roles);
+      },
+      error: (error) => {
+        console.error('Error loading roles:', error);
+      }
+    });
+  }
 
   getUsers(): Observable<User[]> {
-    return this.http.get<User[]>(this.apiUrl);
+    return this.http.get<User[]>(`${this.apiUrl}/Users`);
   }
 
   // New method for paginated users
@@ -50,15 +98,19 @@ export class UserService {
     return this.http.get<any>(this.apiPaginatedUrl, { params });
   }
 
-  addUser(user: User): Observable<User> {
-    return this.http.post<User>(this.apiUrl, user);
+  getRoles(): Observable<Role[]> {
+    return this.roles$;
+  }
+
+  addUser(user: AddUserDto): Observable<any> {
+    return this.http.post(`${this.apiUrl}/Users`, user);
   }
 
   updateUser(id: string, user: User): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/${id}`, user);
+    return this.http.put<User>(`${this.apiUrl}/Users/${id}`, user);
   }
 
   deleteUser(id: string): Observable<DeleteUserResponse> {
-    return this.http.delete<DeleteUserResponse>(`${this.apiUrl}/${id}`);
+    return this.http.delete<DeleteUserResponse>(`${this.apiUrl}/Users/${id}`);
   }
 }
