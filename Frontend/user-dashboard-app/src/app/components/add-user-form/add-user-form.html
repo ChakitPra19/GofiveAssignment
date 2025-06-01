@@ -1,0 +1,42 @@
+<div class="modal-backdrop" (click)="close.emit()"></div>
+<div class="modal">
+  <div class="modal-header">
+    <span>Add User</span>
+    <button class="close-btn" (click)="close.emit()">×</button>
+  </div>
+  <form (ngSubmit)="$event.preventDefault()">
+    <div class="form-row">
+      <input type="text" placeholder="User ID *" />
+      <input type="text" placeholder="First Name *" />
+      <input type="text" placeholder="Last Name *" />
+    </div>
+    <div class="form-row">
+      <input type="email" placeholder="Email ID *" />
+      <input type="text" placeholder="Mobile No" />
+      <input type="text" placeholder="Select Role Type" />
+    </div>
+    <div class="form-row">
+      <input type="text" placeholder="Username *" />
+      <input type="password" placeholder="Password *" />
+      <input type="password" placeholder="Confirm Password *" />
+    </div>
+    <div class="permissions">
+      <div class="permissions-header">
+        <span>Module Permission</span>
+        <span>Read</span>
+        <span>Write</span>
+        <span>Delete</span>
+      </div>
+      <div class="permissions-row" *ngFor="let role of ['Super Admin', 'Admin', 'Employee', 'Lorem Ipsum']">
+        <span>{{ role }}</span>
+        <input type="checkbox" />
+        <input type="checkbox" />
+        <input type="checkbox" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="add-btn">Add User</button>
+      <button type="button" class="cancel-btn" (click)="close.emit()">Cancel</button>
+    </div>
+  </form>
+</div>

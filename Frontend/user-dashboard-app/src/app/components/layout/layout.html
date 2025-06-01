@@ -1,0 +1,34 @@
+<div class="dashboard-layout">
+    <aside class="sidebar">
+      <div class="logo">YOURLOGO</div>
+      <nav>
+        <ul>
+          <li class="active">Dashboard</li>
+          <li>Users</li>
+          <li>Documents</li>
+          <li>Photos</li>
+          <li>Hierarchy</li>
+          <li>Message</li>
+          <li>Help</li>
+          <li>Setting</li>
+        </ul>
+      </nav>
+    </aside>
+    <main class="main-content">
+      <header class="header">
+        <div>
+          <h2>Hello, Chakit</h2>
+          <span>Have a nice day</span>
+          <h3>Users Dashboard</h3>
+        </div>
+        <div class="profile">
+          <span>Chakit Prateepthintong</span>
+          <span>Admin</span>
+        </div>
+      </header>
+      <section class="content">
+        <app-user-list (addUser)="showAddUser = true"></app-user-list>
+      </section>
+    </main>
+  </div>
+  <app-add-user-form *ngIf="showAddUser" (close)="showAddUser = false"></app-add-user-form>
